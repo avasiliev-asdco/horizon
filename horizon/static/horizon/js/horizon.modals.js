@@ -17,6 +17,18 @@ horizon.modals = {
   _init_functions: []
 };
 
+horizon.modals.clearErrors = function ($form) {
+  // Clear old errors inside given element.
+  $form.find('td.actions div.alert-danger').remove();
+  //Remove common form errors
+  $form.find('div.alert-danger').remove();
+  $form.find('.form-group.error').each(function () {
+    var $group = $(this);
+    $group.removeClass('error');
+    $group.find('span.help-block.error').remove();
+  });
+};
+
 horizon.modals.addModalInitFunction = function (f) {
   horizon.modals._init_functions.push(f);
 };
@@ -73,12 +85,7 @@ horizon.modals.init_wizard = function () {
     }
 
     // Clear old errors.
-    $form.find('td.actions div.alert-danger').remove();
-    $form.find('.form-group.error').each(function () {
-      var $group = $(this);
-      $group.removeClass('error');
-      $group.find('span.help-block.error').remove();
-    });
+    horizon.modals.clearErrors($form);
 
     // Send the data for validation.
     $.ajax({
@@ -96,6 +103,11 @@ horizon.modals.init_wizard = function () {
 
     // Handle errors.
     if (response.has_errors) {
+      // Clear old errors (if this form step gives any).
+      // Errors have to be cleared here, because if previous response gave any,
+      // they are still shown (form wasn't reinitialized)
+      horizon.modals.clearErrors($form);
+
       var first_field = true;
 
       $.each(response.errors, function (step_slug, step_errors) {
